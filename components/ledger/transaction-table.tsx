@@ -12,6 +12,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { deleteTransaction } from "@/lib/actions/transactions.actions";
+import { batchDeleteTransactions } from "@/lib/actions/batch.actions";
+import { exportTransactionsToCSV, exportTransactionsToJSON } from "@/lib/utils/export";
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -19,9 +21,10 @@ import {
   Trash2,
   Receipt,
   Search,
-  Filter,
-  ArrowUpDown,
-  Calendar,
+  Download,
+  CheckSquare,
+  Square,
+  X,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { ReceiptLightbox } from "@/components/ledger/receipt-lightbox";
@@ -38,6 +41,10 @@ export function TransactionTable({ transactions = [] }: TransactionTableProps) {
   const [dateRange, setDateRange] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"date_desc" | "date_asc" | "amount_desc" | "amount_asc">("date_desc");
   const [activeTxForReceipt, setActiveTxForReceipt] = useState<any | null>(null);
+
+  // Batch Selection State
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [batchDeleting, setBatchDeleting] = useState(false);
 
   // Extract unique accounts and categories from transactions
   const uniqueAccounts = useMemo(() => {
@@ -124,6 +131,53 @@ export function TransactionTable({ transactions = [] }: TransactionTableProps) {
         return 0;
       });
   }, [transactions, filterType, filterAccount, filterCategory, dateRange, searchTerm, sortBy]);
+
+  // Selection handlers
+  const allFilteredSelected = filtered.length > 0 && filtered.every((tx) => selectedIds.has(tx.id));
+
+  const toggleSelectAll = () => {
+    if (allFilteredSelected) {
+      setSelectedIds(new Set());
+    } else {
+      const next = new Set(selectedIds);
+      filtered.forEach((tx) => next.add(tx.id));
+      setSelectedIds(next);
+    }
+  };
+
+  const toggleSelectRow = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    setSelectedIds(next);
+  };
+
+  const selectedTransactions = useMemo(() => {
+    return transactions.filter((tx) => selectedIds.has(tx.id));
+  }, [transactions, selectedIds]);
+
+  const handleBatchDelete = async () => {
+    if (
+      !confirm(
+        `Delete ${selectedIds.size} selected transaction(s)? Balances will be reverted automatically.`
+      )
+    ) {
+      return;
+    }
+
+    setBatchDeleting(true);
+    const result = await batchDeleteTransactions(Array.from(selectedIds));
+    setBatchDeleting(false);
+
+    if (result.success) {
+      setSelectedIds(new Set());
+    } else {
+      alert(result.error || "Failed to batch delete transactions");
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -221,6 +275,63 @@ export function TransactionTable({ transactions = [] }: TransactionTableProps) {
         </div>
       </div>
 
+      {/* Floating Batch Actions Bar */}
+      {selectedIds.size > 0 && (
+        <div className="p-3 px-4 rounded-xl bg-blue-950/60 border border-blue-800/80 flex flex-wrap items-center justify-between gap-3 shadow-lg shadow-blue-950/50">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+            <span className="text-xs font-bold text-slate-100">
+              {selectedIds.size} transaction{selectedIds.size > 1 ? "s" : ""} selected
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Export Selected CSV */}
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => exportTransactionsToCSV(selectedTransactions)}
+              className="h-7 text-xs font-semibold px-2.5"
+            >
+              <Download className="w-3 h-3 text-blue-400" />
+              Export CSV
+            </Button>
+
+            {/* Export Selected JSON */}
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => exportTransactionsToJSON(selectedTransactions)}
+              className="h-7 text-xs font-semibold px-2.5"
+            >
+              <Download className="w-3 h-3 text-indigo-400" />
+              Export JSON
+            </Button>
+
+            {/* Batch Delete */}
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleBatchDelete}
+              disabled={batchDeleting}
+              className="h-7 text-xs font-semibold px-2.5"
+            >
+              <Trash2 className="w-3 h-3" />
+              {batchDeleting ? "Deleting..." : "Delete Selected"}
+            </Button>
+
+            {/* Clear Selection */}
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors ml-1"
+              title="Clear Selection"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Transactions Table */}
       {filtered.length === 0 ? (
         <div className="p-12 text-center rounded-xl bg-slate-900/30 border border-dashed border-slate-800 space-y-1">
@@ -235,6 +346,21 @@ export function TransactionTable({ transactions = [] }: TransactionTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
+              {/* Checkbox Column */}
+              <TableHead className="w-10 text-center">
+                <button
+                  type="button"
+                  onClick={toggleSelectAll}
+                  className="p-1 text-slate-400 hover:text-white transition-colors"
+                  title={allFilteredSelected ? "Deselect All" : "Select All"}
+                >
+                  {allFilteredSelected ? (
+                    <CheckSquare className="w-4 h-4 text-blue-400" />
+                  ) : (
+                    <Square className="w-4 h-4 text-slate-500" />
+                  )}
+                </button>
+              </TableHead>
               <TableHead className="w-32">Date</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Account / Route</TableHead>
@@ -250,9 +376,30 @@ export function TransactionTable({ transactions = [] }: TransactionTableProps) {
                 "en-US",
                 { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }
               );
+              const isSelected = selectedIds.has(tx.id);
 
               return (
-                <TableRow key={tx.id} className="group">
+                <TableRow
+                  key={tx.id}
+                  className={`group transition-colors ${
+                    isSelected ? "bg-blue-950/25 hover:bg-blue-950/40" : ""
+                  }`}
+                >
+                  {/* Row Checkbox */}
+                  <TableCell className="text-center">
+                    <button
+                      type="button"
+                      onClick={() => toggleSelectRow(tx.id)}
+                      className="p-1 text-slate-400 hover:text-white transition-colors"
+                    >
+                      {isSelected ? (
+                        <CheckSquare className="w-4 h-4 text-blue-400" />
+                      ) : (
+                        <Square className="w-4 h-4 text-slate-600 group-hover:text-slate-400" />
+                      )}
+                    </button>
+                  </TableCell>
+
                   {/* Date */}
                   <TableCell className="text-xs font-medium text-slate-400 whitespace-nowrap">
                     {formattedDate}

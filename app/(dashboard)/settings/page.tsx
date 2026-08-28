@@ -3,6 +3,7 @@ import { getUserProfile } from "@/lib/actions/profile.actions";
 import { getTransactions } from "@/lib/actions/transactions.actions";
 import { ProfileForm } from "@/components/settings/profile-form";
 import { SeedButton } from "@/components/settings/seed-button";
+import { DangerZone } from "@/components/settings/danger-zone";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Settings as SettingsIcon,
@@ -104,6 +105,9 @@ export default async function SettingsPage() {
           </Card>
         </div>
       </div>
+
+      {/* Danger Zone */}
+      <DangerZone />
     </div>
   );
 }
