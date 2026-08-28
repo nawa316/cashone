@@ -285,3 +285,26 @@ INSERT INTO public.categories (name, type, icon, color_hex, is_system) VALUES
 ('Shopping & Groceries', 'expense', 'shopping-cart', '#BE123C', true),
 ('Software & Subscriptions', 'expense', 'server', '#FB7185', true)
 ON CONFLICT DO NOTHING;
+
+-- ==============================================================================
+-- 7. STORAGE BUCKET & POLICIES (Receipts)
+-- ==============================================================================
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('receipts', 'receipts', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+DO $$ BEGIN
+    CREATE POLICY "Receipts publicly accessible"
+        ON storage.objects FOR SELECT
+        USING (bucket_id = 'receipts');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Receipts uploadable by authenticated users"
+        ON storage.objects FOR INSERT
+        TO authenticated
+        WITH CHECK (bucket_id = 'receipts');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
