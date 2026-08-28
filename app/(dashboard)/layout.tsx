@@ -9,8 +9,8 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let userName = "Trader";
-  let userEmail = "trader@cashone.app";
+  let userName = "User";
+  let userEmail = "user@cashone.app";
 
   try {
     const supabase = await createClient();
@@ -23,8 +23,8 @@ export default async function DashboardLayout({
         user.user_metadata?.full_name ||
         user.user_metadata?.name ||
         user.email?.split("@")[0] ||
-        "Trader";
-      userEmail = user.email || "trader@cashone.app";
+        "User";
+      userEmail = user.email || "user@cashone.app";
     }
   } catch {
     // Fallback in local/disconnected dev mode

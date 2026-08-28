@@ -21,7 +21,7 @@ export function AccountsHeader({ totalBalance = 0 }: { totalBalance?: number }) 
             {formatCurrency(totalBalance)}
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Total liquidity across bank, e-wallets, and trading accounts.
+            Total liquidity across bank accounts, savings, e-wallets, and cash holdings.
           </p>
         </div>
 

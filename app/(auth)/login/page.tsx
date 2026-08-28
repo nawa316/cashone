@@ -18,7 +18,7 @@ export default async function LoginPage({
       <CardHeader className="space-y-1 text-center sm:text-left">
         <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
         <CardDescription className="text-slate-400">
-          Sign in to access your ledger, trading accounts, and live analytics.
+          Sign in to access your ledger, financial accounts, and live analytics.
         </CardDescription>
       </CardHeader>
 
@@ -40,7 +40,7 @@ export default async function LoginPage({
             <Input
               type="email"
               name="email"
-              placeholder="trader@cashone.app"
+              placeholder="user@cashone.app"
               required
               autoComplete="email"
               className="bg-slate-900/80 border-slate-700"

@@ -1,7 +1,7 @@
 # Testing, QA & Deployment Guide
-## Cashone — Personal Finance & Trading Journal
+## Cashone — Personal Finance & Cashflow Tracker
 
-This document outlines the testing strategy, test suites, VPS / Self-Hosted deployment procedures, and Supabase database migration workflows.
+This document outlines the testing strategy, test suites, Vercel deployment procedures, and Supabase database migration workflows.
 
 ---
 
@@ -13,18 +13,20 @@ Key financial formulas requiring automated unit tests:
    * Source Balance decreases by $(Amount + Fee)$.
    * Destination Balance increases by $Amount$.
    * Total system balance change equals $-Fee$.
-2. **Forex Cent Account & Standard Lot Calculations:**
-   * 1 Standard Lot Forex = 100,000 units.
-   * 1 Cent Lot = 1,000 units ($1/100\text{th}$ scale).
-   * Gold (`XAUUSD`) pip & dollar value math: $(\text{Exit} - \text{Entry}) \times \text{Lots} \times 100$.
-3. **Risk-to-Reward (R:R) Calculation:**
-   * $\text{Risk} = |\text{Entry} - \text{SL}|$; $\text{Reward} = |\text{TP} - \text{Entry}|$.
-   * $\text{R:R Ratio} = \text{Reward} / \text{Risk}$.
+2. **Multi-Currency FX Normalization:**
+   * Base rate pegged conversion across USD, EUR, GBP, JPY, IDR, SGD, CAD, AUD.
+   * Consolidated Net Worth aggregation across mixed currency accounts.
+3. **Category Budget Threshold & Alerts:**
+   * Safe allocation: $\text{Spent} \le 80\% \times \text{Limit}$.
+   * Warning threshold: $80\% < \text{Spent} \le 100\%$.
+   * Over-budget alert: $\text{Spent} > \text{Limit}$.
+4. **Savings Rate Calculation:**
+   * $\text{Net Savings} = \text{Inflow} - \text{Outflow}$.
+   * $\text{Savings Rate} = (\text{Net Savings} / \text{Inflow}) \times 100\%$.
 
 ### 1.2. Integration & Database Trigger Tests
-Using Supabase local test suite (`pgTAP` / Node.js test runner):
+Using Node.js test runner and Supabase integration tests:
 * Verify `sync_account_balance_on_transaction()` handles batch updates and reverts correctly on transaction delete.
-* Verify `handle_trade_closure()` updates status and updates account balance with realized PnL.
 * Verify RLS prevents User B from reading or querying User A's transactions.
 
 ---
@@ -116,6 +118,6 @@ To ensure authentication redirects (OAuth, password reset, email confirmation) w
 ### 3.4. Next.js 16 Build & Performance Optimization on Vercel
 * **Standalone Output:** Next.js optimizes bundle sizes automatically for Vercel serverless functions.
 * **Edge Middleware:** Session refresh and authentication route protection run instantly on Vercel's global Edge network.
-* **Dynamic Server Actions:** All ledger transactions and trade logging execute securely in isolated Node.js serverless functions with zero cold-start overhead.
+* **Dynamic Server Actions:** All ledger transactions and recurring schedules execute securely in isolated Node.js serverless functions with zero cold-start overhead.
 * **Cache Invalidation:** Server Actions use `revalidatePath()` and `revalidateTag()` to purge and refresh Vercel's Data Cache instantly upon database mutations.
 
