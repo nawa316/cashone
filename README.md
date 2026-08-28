@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cashone — Personal Finance & Double-Entry Cashflow Ledger
 
-## Getting Started
+An institutional-grade, privacy-first personal finance platform built with Next.js 16 (App Router + Turbopack), Supabase (PostgreSQL 15+), and Tailwind CSS. Cashone provides atomic double-entry balance integrity, multi-currency FX normalization, budget tracking, recurring transaction automation, statement imports, and receipt storage.
 
-First, run the development server:
+---
 
+## Key Features
+
+1. **Atomic Double-Entry Financial Ledger:**
+   - Single-entry income/expense and double-entry account transfers.
+   - Guaranteed balance integrity via PostgreSQL triggers (`trg_sync_transaction_balance`).
+   - Fee tracking with automated fee deduction on transfer source accounts.
+   - Multi-select batch operations (Batch Delete & Export Selected).
+
+2. **Multi-Account & Multi-Currency Management:**
+   - Support for Bank Checking, High-Yield Savings, E-Wallets, Cash, and Investments.
+   - Dynamic Multi-Currency FX Engine (`USD`, `EUR`, `GBP`, `JPY`, `IDR`, `SGD`, `CAD`, `AUD`).
+   - Interactive account statement drawer with lifetime inflow/outflow metrics.
+
+3. **Financial Analytics & Cashflow Trajectory:**
+   - Timeframed cashflow aggregation (`7d`, `30d`, `3m`, `6m`, `12m`, `all`).
+   - Savings efficiency and savings rate calculations.
+   - Category spending distribution and asset allocation charts.
+   - Built-in interactive FX Currency Calculator widget.
+   - Print-to-PDF executive summary reporting mode (`@media print`).
+
+4. **Monthly Budgets & Category Spending Limits:**
+   - Visual threshold indicators: Safe ($<80\%$), Warning ($\ge 80\%$), and Overbudget ($>100\%$).
+   - Category management with transaction volume metrics and budget badges.
+
+5. **Recurring Bills & Automated Planner:**
+   - Template scheduler for recurring subscriptions, leases, and income.
+   - 1-click "Post Now" execution to log instances directly to the ledger.
+
+6. **Bank Statement Importer & Data Export:**
+   - CSV and JSON statement parser with preview table and automatic ledger ingestion.
+   - Instant CSV and JSON export engine.
+
+7. **Power-User Navigation & Shortcuts:**
+   - Universal Command Palette (`⌘K` / `Ctrl+K`) for instant navigation and action triggers.
+   - Keyboard Shortcuts Cheatsheet (`?` / `Shift+/`).
+   - Receipt inspection lightbox viewer with zoom in/out, 90° rotation, and download links.
+
+8. **Security & Zero-Trust Architecture:**
+   - Supabase Auth with secure SSR cookie sessions (`@supabase/ssr`).
+   - Strict Row Level Security (RLS) policies on all tables.
+   - Private encrypted receipt storage in Supabase Storage.
+   - Danger Zone with 2-step `"PURGE"` confirmation to reset personal financial data.
+
+---
+
+## Tech Stack
+
+- **Framework:** Next.js 16.3.3 (App Router, Server Actions, Turbopack)
+- **Database:** Supabase PostgreSQL 15+ with PL/pgSQL Triggers & Row Level Security
+- **Authentication & Storage:** Supabase Auth & Supabase Storage
+- **Styling:** Vanilla CSS, Tailwind CSS, Lucide Icons, Catamaran & Inter typography
+- **Testing:** Node.js native test runner (`node:test`)
+
+---
+
+## Quick Start
+
+### 1. Clone & Install Dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/nawa316/cashone.git
+cd cashone
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Environment Variables Configuration
+Create a `.env.local` file in the root directory:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://<your-project-ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
+SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
+DATABASE_URL="postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres"
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_DEFAULT_CURRENCY=USD
+NEXT_PUBLIC_DEFAULT_LOCALE=en-US
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Apply Database Migrations
+Run the initial SQL migration against your Supabase PostgreSQL instance:
+```bash
+PGPASSWORD='<your-db-password>' psql -h <db-host> -p 5432 -U <user> -d postgres -f supabase/migrations/20260901_init_schema.sql
+```
 
-## Learn More
+### 4. Run Unit Tests & Development Server
+```bash
+# Run automated unit test suite
+npm test
 
-To learn more about Next.js, take a look at the following resources:
+# Start Next.js local development server
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Automated Test Suites
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm test
+```
+- `✔ Double-Entry Transfer Math preserves balance minus transaction fees`
+- `✔ Double-Entry Transfer with 0 fee has zero systemic variance`
+- `✔ Budget status properly flags normal, warning (>=80%), and overbudget (>100%)`
+- `✔ Savings Rate accurately computes net surplus and percentage`
+- `✔ Multi-Currency FX Engine correctly normalizes foreign balances`
+- `✔ CSV Statement Parser properly extracts rows and amounts`

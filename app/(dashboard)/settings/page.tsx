@@ -1,6 +1,7 @@
 import React from "react";
 import { getUserProfile } from "@/lib/actions/profile.actions";
 import { getTransactions } from "@/lib/actions/transactions.actions";
+import { checkDatabaseHealth } from "@/lib/actions/health.actions";
 import { ProfileForm } from "@/components/settings/profile-form";
 import { SeedButton } from "@/components/settings/seed-button";
 import { DangerZone } from "@/components/settings/danger-zone";
@@ -10,12 +11,14 @@ import {
   ShieldCheck,
   Database,
   Sparkles,
+  Activity,
 } from "lucide-react";
 
 export default async function SettingsPage() {
-  const [profile, transactions] = await Promise.all([
+  const [profile, transactions, health] = await Promise.all([
     getUserProfile(),
     getTransactions(),
+    checkDatabaseHealth(),
   ]);
 
   return (
@@ -60,13 +63,20 @@ export default async function SettingsPage() {
             <CardHeader className="pb-3 border-b border-slate-800/60">
               <CardTitle className="text-sm font-catamaran font-bold text-slate-100 flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                Security & Isolation
+                Security & Health
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-3 text-xs">
               <div className="flex items-center justify-between">
                 <span className="text-slate-400">Database Engine</span>
-                <span className="font-semibold text-slate-200">PostgreSQL 15+</span>
+                <span className="font-semibold text-slate-200">{health.engine}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Roundtrip Latency</span>
+                <span className="font-semibold text-emerald-400 flex items-center gap-1">
+                  <Activity className="w-3 h-3 text-emerald-400" />
+                  {health.latencyMs} ms
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-400">Row Level Security</span>
