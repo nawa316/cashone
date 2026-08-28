@@ -5,14 +5,13 @@ import { AnalyticsHeader } from "@/components/analytics/analytics-header";
 import { CashflowChart } from "@/components/analytics/cashflow-chart";
 import { CategoryBreakdownCard } from "@/components/analytics/category-breakdown-card";
 import { AssetAllocationCard } from "@/components/analytics/asset-allocation-card";
+import { FxConverterWidget } from "@/components/analytics/fx-converter-widget";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   ArrowDownLeft,
   ArrowUpRight,
   PiggyBank,
   Percent,
-  Receipt,
-  AlertCircle,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
@@ -130,6 +129,9 @@ export default async function AnalyticsPage(props: AnalyticsPageProps) {
         />
         <AssetAllocationCard accounts={analytics.assetAllocation} />
       </div>
+
+      {/* Interactive FX Converter Tool */}
+      <FxConverterWidget />
     </div>
   );
 }

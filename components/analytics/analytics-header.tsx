@@ -9,6 +9,7 @@ import {
   Calendar,
   FileSpreadsheet,
   FileCode,
+  Printer,
 } from "lucide-react";
 import {
   exportTransactionsToCSV,
@@ -43,8 +44,12 @@ export function AnalyticsHeader({
     router.push(`/analytics?${params.toString()}`);
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
       <div>
         <h1 className="font-catamaran text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-2.5">
           <BarChart3 className="w-6 h-6 text-blue-400" />
@@ -76,7 +81,7 @@ export function AnalyticsHeader({
           })}
         </div>
 
-        {/* Quick Export Controls */}
+        {/* Quick Export & Print Controls */}
         <div className="flex items-center gap-1.5">
           <Button
             size="sm"
@@ -97,6 +102,16 @@ export function AnalyticsHeader({
           >
             <FileCode className="w-3.5 h-3.5" />
             JSON
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="text-xs"
+            onClick={handlePrint}
+            title="Print Executive Financial Report"
+          >
+            <Printer className="w-3.5 h-3.5 text-blue-400" />
+            Print
           </Button>
         </div>
       </div>

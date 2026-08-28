@@ -14,6 +14,7 @@ import {
   PiggyBank,
   Trash2,
   Edit2,
+  ArrowRight,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
@@ -29,9 +30,10 @@ interface AccountCardProps {
     is_archived: boolean;
   };
   onEdit?: (account: any) => void;
+  onSelect?: (account: any) => void;
 }
 
-export function AccountCard({ account, onEdit }: AccountCardProps) {
+export function AccountCard({ account, onEdit, onSelect }: AccountCardProps) {
   const getAccountIcon = (type: string) => {
     switch (type) {
       case "bank":
@@ -52,7 +54,10 @@ export function AccountCard({ account, onEdit }: AccountCardProps) {
   const Icon = getAccountIcon(account.type);
 
   return (
-    <Card className="glass-card hover:border-slate-700 transition-all group relative overflow-hidden">
+    <Card
+      onClick={() => onSelect?.(account)}
+      className="glass-card hover:border-slate-700 transition-all group relative overflow-hidden cursor-pointer"
+    >
       {/* Top Color Accent Line */}
       <div
         className="h-1 w-full absolute top-0 left-0"
@@ -73,7 +78,7 @@ export function AccountCard({ account, onEdit }: AccountCardProps) {
               <Icon className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-catamaran text-lg font-bold text-slate-100">
+              <h3 className="font-catamaran text-lg font-bold text-slate-100 group-hover:text-blue-400 transition-colors">
                 {account.name}
               </h3>
               <div className="flex items-center gap-1.5 mt-0.5">
@@ -85,7 +90,10 @@ export function AccountCard({ account, onEdit }: AccountCardProps) {
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div
+            className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={(e) => e.stopPropagation()}
+          >
             {onEdit && (
               <Button
                 size="icon"
@@ -116,15 +124,20 @@ export function AccountCard({ account, onEdit }: AccountCardProps) {
         </div>
 
         {/* Balance Display */}
-        <div className="mt-6 pt-4 border-t border-slate-800/80">
-          <span className="text-xs text-slate-400 font-medium block mb-1">
-            Current Balance
-          </span>
-          <div className="flex items-baseline justify-between">
+        <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between">
+          <div>
+            <span className="text-xs text-slate-400 font-medium block mb-0.5">
+              Current Balance
+            </span>
             <span className="font-catamaran text-2xl font-bold text-slate-100">
               {formatCurrency(account.balance, account.currency)}
             </span>
           </div>
+
+          <span className="text-xs text-slate-500 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all flex items-center gap-1">
+            History
+            <ArrowRight className="w-3.5 h-3.5" />
+          </span>
         </div>
       </CardContent>
     </Card>

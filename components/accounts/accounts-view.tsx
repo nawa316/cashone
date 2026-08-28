@@ -3,21 +3,30 @@
 import React, { useState } from "react";
 import { AccountCard } from "@/components/accounts/account-card";
 import { AccountDialog } from "@/components/accounts/account-dialog";
+import { AccountDetailDrawer } from "@/components/accounts/account-detail-drawer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Building2, PieChart } from "lucide-react";
 import type { Account } from "@/lib/actions/accounts.actions";
 
 interface AccountsViewProps {
   accounts: Account[];
+  transactions?: any[];
 }
 
-export function AccountsView({ accounts = [] }: AccountsViewProps) {
+export function AccountsView({ accounts = [], transactions = [] }: AccountsViewProps) {
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+  const [selectedDetailAccount, setSelectedDetailAccount] = useState<Account | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const handleEdit = (acc: Account) => {
     setEditingAccount(acc);
     setDialogOpen(true);
+  };
+
+  const handleSelectAccount = (acc: Account) => {
+    setSelectedDetailAccount(acc);
+    setDrawerOpen(true);
   };
 
   const handleCloseDialog = (open: boolean) => {
@@ -70,6 +79,7 @@ export function AccountsView({ accounts = [] }: AccountsViewProps) {
                 key={account.id}
                 account={account}
                 onEdit={handleEdit}
+                onSelect={handleSelectAccount}
               />
             ))}
           </div>
@@ -109,6 +119,7 @@ export function AccountsView({ accounts = [] }: AccountsViewProps) {
                 key={account.id}
                 account={account}
                 onEdit={handleEdit}
+                onSelect={handleSelectAccount}
               />
             ))}
           </div>
@@ -123,6 +134,15 @@ export function AccountsView({ accounts = [] }: AccountsViewProps) {
           initialData={editingAccount}
         />
       )}
+
+      {/* Account Detail & Ledger History Drawer */}
+      <AccountDetailDrawer
+        account={selectedDetailAccount}
+        transactions={transactions}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        onEdit={handleEdit}
+      />
     </>
   );
 }
