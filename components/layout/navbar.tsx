@@ -14,6 +14,7 @@ import {
   Wallet,
   ArrowLeftRight,
   PiggyBank,
+  Repeat,
   BarChart3,
   Tags,
   Settings,
@@ -25,6 +26,7 @@ const mobileNavItems = [
   { name: "Accounts & Wallets", href: "/accounts", icon: Wallet },
   { name: "Transactions", href: "/transactions", icon: ArrowLeftRight },
   { name: "Budgets & Limits", href: "/budgets", icon: PiggyBank },
+  { name: "Recurring & Bills", href: "/recurring", icon: Repeat },
   { name: "Analytics & Reports", href: "/analytics", icon: BarChart3 },
   { name: "Categories", href: "/categories", icon: Tags },
   { name: "Settings", href: "/settings", icon: Settings },
@@ -52,18 +54,23 @@ export function Navbar({
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
 
-        {/* Global Search Bar */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800 text-slate-400 text-xs w-64 focus-within:border-blue-500 focus-within:text-slate-200 transition-all">
-          <Search className="w-3.5 h-3.5" />
-          <input
-            type="text"
-            placeholder="Search transactions, groceries, salary..."
-            className="bg-transparent border-none outline-none text-xs w-full text-slate-200 placeholder:text-slate-500"
-          />
-          <kbd className="px-1.5 py-0.5 text-[10px] bg-slate-800 rounded border border-slate-700 text-slate-400">
+        {/* Global Search Bar (Triggers Command Palette) */}
+        <button
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("open-command-palette"));
+            }
+          }}
+          className="hidden sm:flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800 text-slate-400 text-xs w-64 hover:border-slate-700 hover:text-slate-200 transition-all text-left"
+        >
+          <div className="flex items-center gap-2">
+            <Search className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-xs text-slate-400">Search command or pages...</span>
+          </div>
+          <kbd className="px-1.5 py-0.5 text-[10px] bg-slate-800 rounded border border-slate-700 text-slate-400 font-mono">
             ⌘K
           </kbd>
-        </div>
+        </button>
       </div>
 
       {/* Right: Quick Actions & Profile */}

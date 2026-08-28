@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TransactionFormDialog } from "@/components/ledger/transaction-form-dialog";
-import { Plus, ArrowLeftRight, FileSpreadsheet, FileCode } from "lucide-react";
+import { ImportDialog } from "@/components/ledger/import-dialog";
+import { Plus, ArrowLeftRight, FileSpreadsheet, FileCode, UploadCloud } from "lucide-react";
 import {
   exportTransactionsToCSV,
   exportTransactionsToJSON,
@@ -22,6 +23,7 @@ export function TransactionsHeader({
   transactions = [],
 }: TransactionsHeaderProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   return (
     <>
@@ -36,7 +38,18 @@ export function TransactionsHeader({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            className="text-xs"
+            onClick={() => setImportDialogOpen(true)}
+            title="Import Bank Statements (CSV/JSON)"
+          >
+            <UploadCloud className="w-3.5 h-3.5" />
+            Import
+          </Button>
+
           {transactions.length > 0 && (
             <div className="flex items-center gap-1.5">
               <Button
@@ -77,6 +90,12 @@ export function TransactionsHeader({
         onOpenChange={setDialogOpen}
         accounts={accounts}
         categories={categories}
+      />
+
+      <ImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        accounts={accounts}
       />
     </>
   );

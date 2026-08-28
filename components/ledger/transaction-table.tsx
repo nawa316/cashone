@@ -19,9 +19,9 @@ import {
   Trash2,
   Receipt,
   Search,
-  ExternalLink,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { ReceiptLightbox } from "@/components/ledger/receipt-lightbox";
 
 interface TransactionTableProps {
   transactions: any[];
@@ -30,7 +30,7 @@ interface TransactionTableProps {
 export function TransactionTable({ transactions = [] }: TransactionTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
-  const [activeReceipt, setActiveReceipt] = useState<string | null>(null);
+  const [activeTxForReceipt, setActiveTxForReceipt] = useState<any | null>(null);
 
   const filtered = transactions.filter((tx) => {
     const matchesType = filterType === "all" || tx.type === filterType;
@@ -203,9 +203,9 @@ export function TransactionTable({ transactions = [] }: TransactionTableProps) {
                   <TableCell className="text-center">
                     {tx.receipt_url ? (
                       <button
-                        onClick={() => setActiveReceipt(tx.receipt_url)}
+                        onClick={() => setActiveTxForReceipt(tx)}
                         className="p-1.5 rounded-lg bg-slate-800 text-blue-400 hover:bg-slate-700 hover:text-white transition-colors"
-                        title="View Receipt"
+                        title="View Receipt Lightbox"
                       >
                         <Receipt className="w-3.5 h-3.5" />
                       </button>
@@ -239,41 +239,13 @@ export function TransactionTable({ transactions = [] }: TransactionTableProps) {
         </Table>
       )}
 
-      {/* Receipt Modal Preview */}
-      {activeReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="relative max-w-2xl w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
-                <Receipt className="w-4 h-4 text-blue-400" />
-                Receipt Attachment
-              </h3>
-              <div className="flex items-center gap-2">
-                <a
-                  href={activeReceipt}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-white"
-                  title="Open Original"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-                <button
-                  onClick={() => setActiveReceipt(null)}
-                  className="px-2.5 py-1 rounded-lg bg-slate-800 text-xs text-slate-200 hover:bg-slate-700"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={activeReceipt}
-              alt="Receipt"
-              className="max-h-[70vh] w-full object-contain rounded-lg border border-slate-800"
-            />
-          </div>
-        </div>
+      {/* Enhanced Receipt Lightbox Modal */}
+      {activeTxForReceipt && (
+        <ReceiptLightbox
+          receiptUrl={activeTxForReceipt.receipt_url}
+          transaction={activeTxForReceipt}
+          onClose={() => setActiveTxForReceipt(null)}
+        />
       )}
     </div>
   );

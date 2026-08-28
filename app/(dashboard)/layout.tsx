@@ -1,6 +1,7 @@
 import React from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Navbar } from "@/components/layout/navbar";
+import { CommandPalette } from "@/components/layout/command-palette";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardLayout({
@@ -38,6 +39,7 @@ export default async function DashboardLayout({
           {children}
         </main>
       </div>
+      <CommandPalette />
     </div>
   );
 }
