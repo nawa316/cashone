@@ -8,13 +8,34 @@ export function cn(...inputs: ClassValue[]) {
 export function formatCurrency(
   amount: number,
   currency: string = "USD",
-  locale: string = "en-US"
+  locale?: string
 ): string {
-  return new Intl.NumberFormat(locale, {
+  const curr = currency ? currency.toUpperCase() : "USD";
+  const defaultLocale =
+    locale ||
+    (curr === "IDR"
+      ? "id-ID"
+      : curr === "EUR"
+      ? "de-DE"
+      : curr === "GBP"
+      ? "en-GB"
+      : curr === "JPY"
+      ? "ja-JP"
+      : curr === "SGD"
+      ? "en-SG"
+      : curr === "CAD"
+      ? "en-CA"
+      : curr === "AUD"
+      ? "en-AU"
+      : "en-US");
+
+  const noDecimals = ["IDR", "JPY", "KRW"].includes(curr);
+
+  return new Intl.NumberFormat(defaultLocale, {
     style: "currency",
-    currency: currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    currency: curr,
+    minimumFractionDigits: noDecimals ? 0 : 2,
+    maximumFractionDigits: noDecimals ? 0 : 2,
   }).format(amount);
 }
 

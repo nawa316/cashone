@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { getAccounts } from "@/lib/actions/accounts.actions";
 import { getTransactions } from "@/lib/actions/transactions.actions";
+import { getUserProfile } from "@/lib/actions/profile.actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,15 +20,17 @@ import { formatCurrency } from "@/lib/utils";
 import { calculateConsolidatedNetWorth } from "@/lib/utils/currency";
 
 export default async function DashboardPage() {
-  const [accounts, allTransactions] = await Promise.all([
+  const [accounts, allTransactions, profile] = await Promise.all([
     getAccounts(),
     getTransactions(),
+    getUserProfile(),
   ]);
 
+  const userCurrency = profile?.default_currency || "USD";
   const recentTransactions = allTransactions.slice(0, 5);
 
-  // Total Net Worth consolidated across all live accounts
-  const totalNetWorth = calculateConsolidatedNetWorth(accounts, "USD");
+  // Total Net Worth consolidated across all live accounts in user's reporting currency
+  const totalNetWorth = calculateConsolidatedNetWorth(accounts, userCurrency);
 
   // Filter current month's transactions
   const now = new Date();
@@ -136,7 +139,7 @@ export default async function DashboardPage() {
             </div>
             <div className="space-y-1">
               <div className="text-2xl font-bold font-catamaran text-slate-100">
-                {formatCurrency(totalNetWorth)}
+                {formatCurrency(totalNetWorth, userCurrency)}
               </div>
               <p className="text-[11px] text-slate-400 font-medium">
                 {accounts.length > 0
@@ -160,7 +163,7 @@ export default async function DashboardPage() {
             </div>
             <div className="space-y-1">
               <div className="text-2xl font-bold font-catamaran text-emerald-400">
-                +{formatCurrency(monthlyInflow)}
+                +{formatCurrency(monthlyInflow, userCurrency)}
               </div>
               <p className="text-[11px] text-slate-400 font-medium">
                 {currentMonthTransactions.filter((t) => t.type === "income").length > 0
@@ -184,7 +187,7 @@ export default async function DashboardPage() {
             </div>
             <div className="space-y-1">
               <div className="text-2xl font-bold font-catamaran text-rose-400">
-                -{formatCurrency(monthlyOutflow)}
+                -{formatCurrency(monthlyOutflow, userCurrency)}
               </div>
               <p className="text-[11px] text-slate-400 font-medium">
                 {monthlyInflow > 0
@@ -213,7 +216,7 @@ export default async function DashboardPage() {
                 }`}
               >
                 {netMonthlySavings >= 0 ? "+" : ""}
-                {formatCurrency(netMonthlySavings)}
+                {formatCurrency(netMonthlySavings, userCurrency)}
               </div>
               <p className="text-[11px] text-blue-400 font-medium">
                 {savingsRate}% Savings Rate

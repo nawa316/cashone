@@ -6,7 +6,13 @@ import { AccountDialog } from "@/components/accounts/account-dialog";
 import { Plus, Wallet } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
-export function AccountsHeader({ totalBalance = 0 }: { totalBalance?: number }) {
+export function AccountsHeader({
+  totalBalance = 0,
+  currency = "USD",
+}: {
+  totalBalance?: number;
+  currency?: string;
+}) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
@@ -18,7 +24,7 @@ export function AccountsHeader({ totalBalance = 0 }: { totalBalance?: number }) 
             Consolidated Holdings
           </span>
           <div className="font-catamaran text-3xl font-bold text-slate-100">
-            {formatCurrency(totalBalance)}
+            {formatCurrency(totalBalance, currency)}
           </div>
           <p className="text-xs text-slate-400 mt-1">
             Total liquidity across bank accounts, savings, e-wallets, and cash holdings.

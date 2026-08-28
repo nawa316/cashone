@@ -1,6 +1,7 @@
 import React from "react";
 import { getBudgets } from "@/lib/actions/budgets.actions";
 import { getCategories } from "@/lib/actions/categories.actions";
+import { getUserProfile } from "@/lib/actions/profile.actions";
 import { BudgetsHeader } from "@/components/budgets/budgets-header";
 import { BudgetCard } from "@/components/budgets/budget-card";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,10 +9,13 @@ import { PiggyBank, ArrowDownLeft, AlertTriangle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function BudgetsPage() {
-  const [budgets, categories] = await Promise.all([
+  const [budgets, categories, profile] = await Promise.all([
     getBudgets(),
     getCategories("expense"),
+    getUserProfile(),
   ]);
+
+  const userCurrency = profile?.default_currency || "USD";
 
   const totalBudgetPool = budgets.reduce(
     (sum, b) => sum + Number(b.limit_amount || 0),
@@ -36,7 +40,7 @@ export default async function BudgetsPage() {
                 Total Monthly Budget
               </span>
               <span className="font-catamaran font-bold text-xl text-slate-100">
-                {formatCurrency(totalBudgetPool)}
+                {formatCurrency(totalBudgetPool, userCurrency)}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-blue-500/15 text-blue-400">
@@ -53,7 +57,7 @@ export default async function BudgetsPage() {
                 Total Spent in Period
               </span>
               <span className="font-catamaran font-bold text-xl text-rose-400">
-                {formatCurrency(totalSpent)}
+                {formatCurrency(totalSpent, userCurrency)}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-rose-500/15 text-rose-400">
@@ -70,7 +74,7 @@ export default async function BudgetsPage() {
                 Remaining Allowance
               </span>
               <span className="font-catamaran font-bold text-xl text-emerald-400">
-                {formatCurrency(totalRemaining)}
+                {formatCurrency(totalRemaining, userCurrency)}
               </span>
             </div>
             <div
