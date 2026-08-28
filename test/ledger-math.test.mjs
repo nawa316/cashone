@@ -30,7 +30,22 @@ function calculateSavingsRate(income, expense) {
   return { netSavings, rate: parseFloat(rate) };
 }
 
-// 4. CSV Parser Logic
+// 4. Multi-Currency FX Engine Simulation
+const RATES_TO_USD = {
+  USD: 1.0,
+  EUR: 1.08,
+  GBP: 1.28,
+  IDR: 0.0000625,
+};
+
+function convertCurrency(amount, from, to) {
+  if (from === to) return amount;
+  const fromRate = RATES_TO_USD[from] || 1.0;
+  const toRate = RATES_TO_USD[to] || 1.0;
+  return (amount * fromRate) / toRate;
+}
+
+// 5. CSV Parser Logic
 function parseSimpleCSV(csvText) {
   const lines = csvText.trim().split("\n").filter((l) => l.trim().length > 0);
   if (lines.length <= 1) return [];
@@ -111,6 +126,20 @@ test("Savings Rate accurately computes net surplus and percentage", () => {
   const zeroIncome = calculateSavingsRate(0, 500);
   assert.equal(zeroIncome.netSavings, -500);
   assert.equal(zeroIncome.rate, 0);
+});
+
+test("Multi-Currency FX Engine correctly normalizes foreign balances", () => {
+  // 100 EUR to USD (1.08 rate)
+  const eurToUsd = convertCurrency(100, "EUR", "USD");
+  assert.equal(eurToUsd, 108);
+
+  // 160,000 IDR to USD (~$10)
+  const idrToUsd = convertCurrency(160000, "IDR", "USD");
+  assert.equal(idrToUsd, 10);
+
+  // Same currency identity
+  const usdToUsd = convertCurrency(500, "USD", "USD");
+  assert.equal(usdToUsd, 500);
 });
 
 test("CSV Statement Parser properly extracts rows and amounts", () => {

@@ -2,13 +2,13 @@ import React from "react";
 import { getUserProfile } from "@/lib/actions/profile.actions";
 import { getTransactions } from "@/lib/actions/transactions.actions";
 import { ProfileForm } from "@/components/settings/profile-form";
+import { SeedButton } from "@/components/settings/seed-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Settings as SettingsIcon,
   ShieldCheck,
   Database,
-  Download,
-  Lock,
+  Sparkles,
 } from "lucide-react";
 
 export default async function SettingsPage() {
@@ -32,8 +32,24 @@ export default async function SettingsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left 2 Cols: Profile Form */}
-        <div className="md:col-span-2">
+        <div className="md:col-span-2 space-y-6">
           <ProfileForm profile={profile} />
+
+          {/* Developer & Demo Data Tool */}
+          <Card className="glass-card">
+            <CardHeader className="pb-3 border-b border-slate-800/60">
+              <CardTitle className="text-sm font-catamaran font-bold text-slate-100 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-blue-400" />
+                Demo Data & Factory
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 space-y-3">
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Populate your workspace with a complete set of checking accounts, high-yield savings, sample categories, recurring bills, and ledger transactions.
+              </p>
+              <SeedButton />
+            </CardContent>
+          </Card>
         </div>
 
         {/* Right 1 Col: Security & System Info */}

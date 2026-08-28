@@ -16,10 +16,34 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Cashone — Personal Finance & Cashflow Tracker",
-  description: "Institutional-grade personal finance ledger, multi-account liquid tracking, and double-entry transfers.",
+  title: "Cashone — Personal Finance & Double-Entry Ledger",
+  description:
+    "Institutional-grade personal finance ledger, multi-account liquid tracking, atomic transfers, category analytics, and receipt storage.",
+  keywords: [
+    "personal finance",
+    "budget tracker",
+    "double entry ledger",
+    "cashflow analytics",
+    "expense manager",
+    "multi-currency tracking",
+    "supabase finance",
+  ],
+  manifest: "/manifest.json",
   icons: {
     icon: "/favicon.ico",
+  },
+  openGraph: {
+    title: "Cashone — Personal Finance & Cashflow Tracker",
+    description:
+      "Manage multi-account cash flows with atomic double-entry balance integrity and category analytics.",
+    type: "website",
+    siteName: "Cashone",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Cashone — Personal Finance & Cashflow Tracker",
+    description:
+      "Manage multi-account cash flows with atomic double-entry balance integrity and category analytics.",
   },
 };
 
