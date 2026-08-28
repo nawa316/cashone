@@ -13,8 +13,10 @@ import {
   PiggyBank,
   PieChart,
   BarChart3,
+  Calendar,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { calculateConsolidatedNetWorth } from "@/lib/utils/currency";
 
 export default async function DashboardPage() {
   const [accounts, allTransactions] = await Promise.all([
@@ -24,11 +26,8 @@ export default async function DashboardPage() {
 
   const recentTransactions = allTransactions.slice(0, 5);
 
-  // Total Net Worth from live accounts
-  const totalNetWorth =
-    accounts.length > 0
-      ? accounts.reduce((sum, acc) => sum + Number(acc.balance || 0), 0)
-      : 32450.0;
+  // Total Net Worth consolidated across all live accounts
+  const totalNetWorth = calculateConsolidatedNetWorth(accounts, "USD");
 
   // Filter current month's transactions
   const now = new Date();
@@ -42,8 +41,6 @@ export default async function DashboardPage() {
     );
   });
 
-  const hasLiveData = allTransactions.length > 0;
-
   let monthlyInflow = 0;
   let monthlyOutflow = 0;
   const categorySpendingMap = new Map<
@@ -51,41 +48,30 @@ export default async function DashboardPage() {
     { name: string; amount: number; color: string }
   >();
 
-  if (hasLiveData) {
-    // Use current month transactions, or all transactions if current month is empty
-    const activeDataset =
-      currentMonthTransactions.length > 0
-        ? currentMonthTransactions
-        : allTransactions;
+  // Aggregate current month transactions
+  currentMonthTransactions.forEach((tx) => {
+    const amount = Number(tx.amount || 0);
+    const fee = Number(tx.fee || 0);
 
-    activeDataset.forEach((tx) => {
-      const amount = Number(tx.amount || 0);
-      const fee = Number(tx.fee || 0);
+    if (tx.type === "income") {
+      monthlyInflow += amount;
+    } else if (tx.type === "expense") {
+      const totalExp = amount + fee;
+      monthlyOutflow += totalExp;
 
-      if (tx.type === "income") {
-        monthlyInflow += amount;
-      } else if (tx.type === "expense") {
-        const totalExp = amount + fee;
-        monthlyOutflow += totalExp;
+      const catName = tx.category?.name || "Uncategorized";
+      const catColor = tx.category?.color_hex || "#EF4444";
 
-        const catName = tx.category?.name || "General Expenses";
-        const catColor = tx.category?.color_hex || "#EF4444";
-
-        if (!categorySpendingMap.has(catName)) {
-          categorySpendingMap.set(catName, {
-            name: catName,
-            amount: 0,
-            color: catColor,
-          });
-        }
-        categorySpendingMap.get(catName)!.amount += totalExp;
+      if (!categorySpendingMap.has(catName)) {
+        categorySpendingMap.set(catName, {
+          name: catName,
+          amount: 0,
+          color: catColor,
+        });
       }
-    });
-  } else {
-    // Realistic fallback mock data for empty initial state
-    monthlyInflow = 5800.0;
-    monthlyOutflow = 2350.0;
-  }
+      categorySpendingMap.get(catName)!.amount += totalExp;
+    }
+  });
 
   const netMonthlySavings = monthlyInflow - monthlyOutflow;
   const savingsRate =
@@ -94,33 +80,18 @@ export default async function DashboardPage() {
       : "0.0";
 
   // Top category breakdown
-  let topExpenseCategories: Array<{
-    name: string;
-    amount: number;
-    percent: number;
-    color: string;
-  }> = [];
-
-  if (hasLiveData && categorySpendingMap.size > 0) {
-    const totalExp = monthlyOutflow || 1;
-    topExpenseCategories = Array.from(categorySpendingMap.values())
-      .map((c) => ({
-        name: c.name,
-        amount: c.amount,
-        percent: Math.min(Math.round((c.amount / totalExp) * 100), 100),
-        color: c.color,
-      }))
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 5);
-  } else {
-    topExpenseCategories = [
-      { name: "Housing & Rent", amount: 1200.0, percent: 51, color: "#DC2626" },
-      { name: "Food & Dining", amount: 550.0, percent: 23, color: "#EF4444" },
-      { name: "Transportation & Fuel", amount: 280.0, percent: 12, color: "#F87171" },
-      { name: "Utilities & Internet", amount: 180.0, percent: 8, color: "#FCA5A5" },
-      { name: "Subscriptions", amount: 140.0, percent: 6, color: "#FB7185" },
-    ];
-  }
+  const topExpenseCategories = Array.from(categorySpendingMap.values())
+    .map((c) => ({
+      name: c.name,
+      amount: c.amount,
+      percent:
+        monthlyOutflow > 0
+          ? Math.min(Math.round((c.amount / monthlyOutflow) * 100), 100)
+          : 0,
+      color: c.color,
+    }))
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 5);
 
   return (
     <div className="space-y-8">
@@ -168,7 +139,9 @@ export default async function DashboardPage() {
                 {formatCurrency(totalNetWorth)}
               </div>
               <p className="text-[11px] text-slate-400 font-medium">
-                Across {accounts.length > 0 ? accounts.length : 4} active accounts
+                {accounts.length > 0
+                  ? `Across ${accounts.length} active account${accounts.length > 1 ? "s" : ""}`
+                  : "No active accounts"}
               </p>
             </div>
           </CardContent>
@@ -189,8 +162,10 @@ export default async function DashboardPage() {
               <div className="text-2xl font-bold font-catamaran text-emerald-400">
                 +{formatCurrency(monthlyInflow)}
               </div>
-              <p className="text-[11px] text-emerald-400 font-medium">
-                {hasLiveData ? "Direct from ledger" : "Salary, freelance & dividends"}
+              <p className="text-[11px] text-slate-400 font-medium">
+                {currentMonthTransactions.filter((t) => t.type === "income").length > 0
+                  ? "Recorded income this month"
+                  : "No income logged this month"}
               </p>
             </div>
           </CardContent>
@@ -214,7 +189,7 @@ export default async function DashboardPage() {
               <p className="text-[11px] text-slate-400 font-medium">
                 {monthlyInflow > 0
                   ? `${((monthlyOutflow / monthlyInflow) * 100).toFixed(1)}% of monthly income`
-                  : "Recorded expenses"}
+                  : "No expenses logged this month"}
               </p>
             </div>
           </CardContent>
@@ -262,60 +237,41 @@ export default async function DashboardPage() {
             </Link>
           </CardHeader>
           <CardContent className="space-y-3">
-            {(accounts.length > 0
-              ? accounts
-              : [
-                  {
-                    id: "1",
-                    name: "BCA Main Checking",
-                    type: "bank",
-                    balance: 12400.0,
-                    currency: "USD",
-                    color_hex: "#3B82F6",
-                  },
-                  {
-                    id: "2",
-                    name: "Emergency Savings",
-                    type: "savings",
-                    balance: 14500.0,
-                    currency: "USD",
-                    color_hex: "#10B981",
-                  },
-                  {
-                    id: "3",
-                    name: "Digital E-Wallet",
-                    type: "e_wallet",
-                    balance: 1550.0,
-                    currency: "USD",
-                    color_hex: "#8B5CF6",
-                  },
-                  {
-                    id: "4",
-                    name: "Stock Investment",
-                    type: "investment",
-                    balance: 4000.0,
-                    currency: "USD",
-                    color_hex: "#F59E0B",
-                  },
-                ]
-            ).map((acc: any) => (
-              <div
-                key={acc.id}
-                className="p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 flex items-center justify-between hover:border-slate-700 transition-colors"
-              >
-                <div>
-                  <h4 className="text-xs font-semibold text-slate-200">
-                    {acc.name}
-                  </h4>
-                  <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
-                    {acc.type.replace(/_/g, " ")}
-                  </span>
-                </div>
-                <div className="font-catamaran font-bold text-sm text-slate-100">
-                  {formatCurrency(acc.balance, acc.currency)}
+            {accounts.length === 0 ? (
+              <div className="p-6 text-center rounded-xl bg-slate-900/30 border border-dashed border-slate-800 space-y-2">
+                <Wallet className="w-6 h-6 text-slate-500 mx-auto" />
+                <p className="text-xs font-semibold text-slate-300">No accounts created</p>
+                <p className="text-[11px] text-slate-500">
+                  Add your first bank, savings, or e-wallet account to begin tracking.
+                </p>
+                <div className="pt-1">
+                  <Link href="/accounts">
+                    <Button size="sm" variant="secondary" className="text-xs">
+                      + Add Account
+                    </Button>
+                  </Link>
                 </div>
               </div>
-            ))}
+            ) : (
+              accounts.slice(0, 4).map((acc) => (
+                <div
+                  key={acc.id}
+                  className="p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 flex items-center justify-between hover:border-slate-700 transition-colors"
+                >
+                  <div>
+                    <h4 className="text-xs font-semibold text-slate-200">
+                      {acc.name}
+                    </h4>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+                      {acc.type.replace(/_/g, " ")}
+                    </span>
+                  </div>
+                  <div className="font-catamaran font-bold text-sm text-slate-100">
+                    {formatCurrency(acc.balance, acc.currency)}
+                  </div>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
 
@@ -336,31 +292,40 @@ export default async function DashboardPage() {
               </Link>
             </CardHeader>
             <CardContent className="space-y-3">
-              {topExpenseCategories.map((cat) => (
-                <div key={cat.name} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs font-medium">
-                    <span className="text-slate-300 flex items-center gap-2">
-                      <span
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: cat.color }}
-                      />
-                      {cat.name}
-                    </span>
-                    <span className="font-catamaran font-bold text-slate-200">
-                      {formatCurrency(cat.amount)} ({cat.percent}%)
-                    </span>
-                  </div>
-                  <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{
-                        width: `${cat.percent}%`,
-                        backgroundColor: cat.color,
-                      }}
-                    />
-                  </div>
+              {topExpenseCategories.length === 0 ? (
+                <div className="p-6 text-center rounded-xl bg-slate-900/30 border border-dashed border-slate-800 space-y-1">
+                  <p className="text-xs font-semibold text-slate-300">No expense records this month</p>
+                  <p className="text-[11px] text-slate-500">
+                    Expenses will automatically be categorized here as you log transactions.
+                  </p>
                 </div>
-              ))}
+              ) : (
+                topExpenseCategories.map((cat) => (
+                  <div key={cat.name} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs font-medium">
+                      <span className="text-slate-300 flex items-center gap-2">
+                        <span
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: cat.color }}
+                        />
+                        {cat.name}
+                      </span>
+                      <span className="font-catamaran font-bold text-slate-200">
+                        {formatCurrency(cat.amount)} ({cat.percent}%)
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width: `${cat.percent}%`,
+                          backgroundColor: cat.color,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
 
@@ -379,98 +344,74 @@ export default async function DashboardPage() {
               </Link>
             </CardHeader>
             <CardContent className="space-y-2">
-              {(recentTransactions.length > 0
-                ? recentTransactions
-                : [
-                    {
-                      id: "1",
-                      notes: "Monthly Salary Payout",
-                      type: "income",
-                      amount: 4500.0,
-                      currency: "USD",
-                      account: { name: "BCA Main" },
-                      transaction_date: new Date().toISOString(),
-                    },
-                    {
-                      id: "2",
-                      notes: "Transfer to Savings",
-                      type: "transfer",
-                      amount: 1000.0,
-                      currency: "USD",
-                      account: { name: "BCA" },
-                      destination_account: { name: "Savings" },
-                      transaction_date: new Date().toISOString(),
-                    },
-                    {
-                      id: "3",
-                      notes: "Groceries & Supermarket",
-                      type: "expense",
-                      amount: 165.0,
-                      currency: "USD",
-                      account: { name: "BCA Main" },
-                      transaction_date: new Date().toISOString(),
-                    },
-                    {
-                      id: "4",
-                      notes: "Cloud Server Hosting",
-                      type: "expense",
-                      amount: 45.0,
-                      currency: "USD",
-                      account: { name: "BCA Main" },
-                      transaction_date: new Date().toISOString(),
-                    },
-                  ]
-              ).map((tx: any) => (
-                <div
-                  key={tx.id}
-                  className="p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`p-2 rounded-lg ${
-                        tx.type === "income"
-                          ? "bg-emerald-500/15 text-emerald-400"
-                          : tx.type === "transfer"
-                          ? "bg-blue-500/15 text-blue-400"
-                          : "bg-rose-500/15 text-rose-400"
-                      }`}
-                    >
-                      {tx.type === "income" ? (
-                        <ArrowDownLeft className="w-4 h-4" />
-                      ) : tx.type === "transfer" ? (
-                        <ArrowLeftRight className="w-4 h-4" />
-                      ) : (
-                        <ArrowUpRight className="w-4 h-4" />
-                      )}
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-semibold text-slate-200">
-                        {tx.notes ||
-                          (tx.category ? tx.category.name : "Transaction")}
-                      </h4>
-                      <span className="text-[10px] text-slate-400">
-                        {tx.type === "transfer"
-                          ? `${tx.account?.name || "Source"} → ${
-                              tx.destination_account?.name || "Destination"
-                            }`
-                          : tx.account?.name || "Account"}
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    className={`font-catamaran font-bold text-sm ${
-                      tx.type === "income"
-                        ? "text-emerald-400"
-                        : tx.type === "transfer"
-                        ? "text-blue-400"
-                        : "text-rose-400"
-                    }`}
-                  >
-                    {tx.type === "income" ? "+" : tx.type === "expense" ? "-" : ""}
-                    {formatCurrency(tx.amount, tx.currency || "USD")}
+              {recentTransactions.length === 0 ? (
+                <div className="p-6 text-center rounded-xl bg-slate-900/30 border border-dashed border-slate-800 space-y-2">
+                  <p className="text-xs font-semibold text-slate-300">No transactions recorded yet</p>
+                  <p className="text-[11px] text-slate-500">
+                    Record your first income, expense, or transfer to start tracking your cashflow.
+                  </p>
+                  <div className="pt-1">
+                    <Link href="/transactions">
+                      <Button size="sm" className="text-xs font-semibold">
+                        <Plus className="w-3.5 h-3.5" />
+                        Record Transaction
+                      </Button>
+                    </Link>
                   </div>
                 </div>
-              ))}
+              ) : (
+                recentTransactions.map((tx: any) => (
+                  <div
+                    key={tx.id}
+                    className="p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`p-2 rounded-lg ${
+                          tx.type === "income"
+                            ? "bg-emerald-500/15 text-emerald-400"
+                            : tx.type === "transfer"
+                            ? "bg-blue-500/15 text-blue-400"
+                            : "bg-rose-500/15 text-rose-400"
+                        }`}
+                      >
+                        {tx.type === "income" ? (
+                          <ArrowDownLeft className="w-4 h-4" />
+                        ) : tx.type === "transfer" ? (
+                          <ArrowLeftRight className="w-4 h-4" />
+                        ) : (
+                          <ArrowUpRight className="w-4 h-4" />
+                        )}
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-semibold text-slate-200">
+                          {tx.notes ||
+                            (tx.category ? tx.category.name : "Transaction")}
+                        </h4>
+                        <span className="text-[10px] text-slate-400">
+                          {tx.type === "transfer"
+                            ? `${tx.account?.name || "Source"} → ${
+                                tx.destination_account?.name || "Destination"
+                              }`
+                            : tx.account?.name || "Account"}
+                        </span>
+                      </div>
+                    </div>
+                    <div
+                      className={`font-catamaran font-bold text-sm ${
+                        tx.type === "income"
+                          ? "text-emerald-400"
+                          : tx.type === "transfer"
+                          ? "text-blue-400"
+                          : "text-rose-400"
+                      }`}
+                    >
+                      {tx.type === "income" ? "+" : tx.type === "expense" ? "-" : ""}
+                      {formatCurrency(tx.amount, tx.currency || "USD")}
+                    </div>
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
         </div>
