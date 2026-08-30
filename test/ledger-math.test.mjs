@@ -158,3 +158,101 @@ test("CSV Statement Parser properly extracts rows and amounts", () => {
   assert.equal(parsed[2].type, "transfer");
   assert.equal(parsed[2].amount, 500);
 });
+
+// 6. 7-Day Weekly Trend Data Aggregator Simulation
+function aggregateWeeklyTrends(transactions, baseDate = new Date()) {
+  const result = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(baseDate);
+    d.setDate(d.getDate() - i);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const dateKey = `${year}-${month}-${day}`;
+
+    result.push({
+      date: dateKey,
+      income: 0,
+      expense: 0,
+      transfer: 0,
+      net: 0,
+    });
+  }
+
+  transactions.forEach((tx) => {
+    if (!tx.transaction_date) return;
+    const txDate = new Date(tx.transaction_date);
+    if (isNaN(txDate.getTime())) return;
+
+    const year = txDate.getFullYear();
+    const month = String(txDate.getMonth() + 1).padStart(2, "0");
+    const day = String(txDate.getDate()).padStart(2, "0");
+    const dateKey = `${year}-${month}-${day}`;
+
+    const targetDay = result.find((d) => d.date === dateKey);
+    if (!targetDay) return;
+
+    const amount = Number(tx.amount || 0);
+    const fee = Number(tx.fee || 0);
+
+    if (tx.type === "income") {
+      targetDay.income += amount;
+      targetDay.net += amount;
+    } else if (tx.type === "expense") {
+      const totalExp = amount + fee;
+      targetDay.expense += totalExp;
+      targetDay.net -= totalExp;
+    } else if (tx.type === "transfer") {
+      targetDay.transfer += amount;
+    }
+  });
+
+  return result;
+}
+
+test("7-Day Weekly Trend correctly aggregates Income, Expense, and Transfer buckets", () => {
+  const baseDate = new Date("2026-08-30T12:00:00Z");
+  const testTransactions = [
+    // Today: Aug 30
+    { transaction_date: "2026-08-30T09:00:00Z", type: "income", amount: 1200, fee: 0 },
+    { transaction_date: "2026-08-30T10:00:00Z", type: "expense", amount: 150, fee: 10 },
+    { transaction_date: "2026-08-30T11:00:00Z", type: "transfer", amount: 300, fee: 0 },
+    // 2 days ago: Aug 28
+    { transaction_date: "2026-08-28T08:00:00Z", type: "income", amount: 500, fee: 0 },
+    { transaction_date: "2026-08-28T14:00:00Z", type: "expense", amount: 200, fee: 5 },
+    // 6 days ago: Aug 24
+    { transaction_date: "2026-08-24T12:00:00Z", type: "transfer", amount: 450, fee: 0 },
+    // Outside 7-day window (8 days ago: Aug 22) - should NOT be included
+    { transaction_date: "2026-08-22T12:00:00Z", type: "income", amount: 9999, fee: 0 },
+  ];
+
+  const trend = aggregateWeeklyTrends(testTransactions, baseDate);
+  assert.equal(trend.length, 7, "Must contain exactly 7 consecutive days");
+
+  // Today (2026-08-30)
+  const today = trend[6];
+  assert.equal(today.date, "2026-08-30");
+  assert.equal(today.income, 1200);
+  assert.equal(today.expense, 160); // 150 + 10 fee
+  assert.equal(today.transfer, 300);
+  assert.equal(today.net, 1040); // 1200 - 160
+
+  // 2 days ago (2026-08-28)
+  const twoDaysAgo = trend[4];
+  assert.equal(twoDaysAgo.date, "2026-08-28");
+  assert.equal(twoDaysAgo.income, 500);
+  assert.equal(twoDaysAgo.expense, 205); // 200 + 5 fee
+  assert.equal(twoDaysAgo.net, 295);
+
+  // 6 days ago (2026-08-24)
+  const sixDaysAgo = trend[0];
+  assert.equal(sixDaysAgo.date, "2026-08-24");
+  assert.equal(sixDaysAgo.transfer, 450);
+  assert.equal(sixDaysAgo.income, 0);
+  assert.equal(sixDaysAgo.expense, 0);
+
+  // Overall totals across the 7 days (ignoring Aug 22)
+  const totalIncome = trend.reduce((sum, d) => sum + d.income, 0);
+  assert.equal(totalIncome, 1700, "Should only include 1200 + 500 = 1700");
+});
+

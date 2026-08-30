@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getAccounts } from "@/lib/actions/accounts.actions";
 import { getTransactions } from "@/lib/actions/transactions.actions";
 import { getUserProfile } from "@/lib/actions/profile.actions";
+import { getWeeklyTrendData } from "@/lib/actions/analytics.actions";
+import { WeeklyTrendChart } from "@/components/dashboard/weekly-trend-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +30,7 @@ export default async function DashboardPage() {
 
   const userCurrency = profile?.default_currency || "USD";
   const recentTransactions = allTransactions.slice(0, 5);
+  const weeklyTrendData = getWeeklyTrendData(allTransactions);
 
   // Total Net Worth consolidated across all live accounts in user's reporting currency
   const totalNetWorth = calculateConsolidatedNetWorth(accounts, userCurrency);
@@ -225,6 +228,9 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 7-Day Weekly Trend Line Chart (Income, Expense, Transfer) */}
+      <WeeklyTrendChart data={weeklyTrendData} currency={userCurrency} />
 
       {/* Main Grid: Accounts List, Expense Breakdown & Recent Ledger Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
