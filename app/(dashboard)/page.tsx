@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getAccounts } from "@/lib/actions/accounts.actions";
 import { getTransactions } from "@/lib/actions/transactions.actions";
 import { getUserProfile } from "@/lib/actions/profile.actions";
-import { getWeeklyTrendData } from "@/lib/actions/analytics.actions";
+import { getWeeklyTrendData } from "@/lib/utils/analytics";
 import { WeeklyTrendChart } from "@/components/dashboard/weekly-trend-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
-import type { DailyTrendPoint } from "@/lib/actions/analytics.actions";
+import type { DailyTrendPoint } from "@/lib/utils/analytics";
 import {
   TrendingUp,
   ArrowDownLeft,
