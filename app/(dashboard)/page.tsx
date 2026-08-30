@@ -389,7 +389,13 @@ export default async function DashboardPage() {
                       <div>
                         <h4 className="text-xs font-semibold text-slate-200">
                           {tx.notes ||
-                            (tx.category ? tx.category.name : "Transaction")}
+                            (tx.type === "transfer"
+                              ? "Inter-Account Transfer"
+                              : tx.category
+                              ? tx.category.name
+                              : tx.type === "income"
+                              ? "Income"
+                              : "Expense")}
                         </h4>
                         <span className="text-[10px] text-slate-400">
                           {tx.type === "transfer"

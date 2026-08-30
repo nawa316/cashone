@@ -197,7 +197,13 @@ export function AccountDetailDrawer({
                       </div>
                       <div>
                         <div className="font-semibold text-slate-200">
-                          {tx.notes || tx.category?.name || "Transaction"}
+                          {tx.notes ||
+                            (tx.type === "transfer"
+                              ? isDeposit
+                                ? `Transfer from ${tx.account?.name || "Source"}`
+                                : `Transfer to ${tx.destination_account?.name || "Destination"}`
+                              : tx.category?.name ||
+                                (tx.type === "income" ? "Income" : "Expense"))}
                         </div>
                         <span className="text-[10px] text-slate-500">
                           {new Date(tx.transaction_date).toLocaleDateString("en-US", {

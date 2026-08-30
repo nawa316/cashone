@@ -88,6 +88,7 @@ export function TransactionFormDialog({
     const formData = new FormData(e.currentTarget);
     formData.set("type", type);
     formData.set("account_id", sourceAccountId);
+    formData.set("currency", sourceAccount?.currency || "USD");
     if (type === "transfer") {
       formData.set("destination_account_id", destinationAccountId);
     }
@@ -170,7 +171,7 @@ export function TransactionFormDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-300">
-                Amount ({sourceAccount?.currency || "USD"})
+                {type === "transfer" ? "Transfer Amount" : "Amount"} ({sourceAccount?.currency || "USD"})
               </label>
               <Input
                 name="amount"
@@ -261,13 +262,19 @@ export function TransactionFormDialog({
                   <span>
                     {sourceAccount.name}:{" "}
                     <strong className="text-rose-400 font-catamaran">
-                      {formatCurrency(sourceAccount.balance - (numericAmount + numericFee))}
+                      {formatCurrency(
+                        sourceAccount.balance - (numericAmount + numericFee),
+                        sourceAccount.currency
+                      )}
                     </strong>
                   </span>
                   <span>
                     {destAccount.name}:{" "}
                     <strong className="text-emerald-400 font-catamaran">
-                      {formatCurrency(destAccount.balance + numericAmount)}
+                      {formatCurrency(
+                        destAccount.balance + numericAmount,
+                        destAccount.currency
+                      )}
                     </strong>
                   </span>
                 </div>
@@ -277,7 +284,7 @@ export function TransactionFormDialog({
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-300">
-                  Target Account
+                  {type === "income" ? "Deposit To (Account)" : "Withdraw From (Account)"}
                 </label>
                 <select
                   value={sourceAccountId}
@@ -295,7 +302,7 @@ export function TransactionFormDialog({
 
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-300">
-                  Category
+                  {type === "income" ? "Income Category" : "Expense Category"}
                 </label>
                 <select
                   name="category_id"

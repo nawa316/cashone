@@ -115,7 +115,7 @@ export function RecurringCard({ template }: RecurringCardProps) {
             }`}
           >
             {isIncome ? "+" : isTransfer ? "" : "-"}
-            {formatCurrency(template.amount)}
+            {formatCurrency(template.amount, template.account?.currency || (template as any).currency || "USD")}
           </div>
         </div>
 

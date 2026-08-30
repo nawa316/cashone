@@ -454,7 +454,7 @@ export function TransactionTable({ transactions = [] }: TransactionTableProps) {
                   <TableCell>
                     <div className="space-y-0.5">
                       <span className="text-xs text-slate-200 font-medium block">
-                        {tx.category?.name || "Uncategorized"}
+                        {tx.category?.name || (tx.type === "transfer" ? "Inter-Account Transfer" : "Uncategorized")}
                       </span>
                       {tx.notes && (
                         <p className="text-[11px] text-slate-400 truncate max-w-xs">

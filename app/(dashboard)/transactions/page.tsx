@@ -2,6 +2,7 @@ import React from "react";
 import { getTransactions } from "@/lib/actions/transactions.actions";
 import { getAccounts } from "@/lib/actions/accounts.actions";
 import { getCategories } from "@/lib/actions/categories.actions";
+import { getUserProfile } from "@/lib/actions/profile.actions";
 import { TransactionsHeader } from "@/components/ledger/transactions-header";
 import { TransactionTable } from "@/components/ledger/transaction-table";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,11 +10,14 @@ import { ArrowDownLeft, ArrowUpRight, ArrowLeftRight } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function TransactionsPage() {
-  const [transactions, accounts, categories] = await Promise.all([
+  const [transactions, accounts, categories, profile] = await Promise.all([
     getTransactions(),
     getAccounts(),
     getCategories(),
+    getUserProfile(),
   ]);
+
+  const userCurrency = profile?.default_currency || "USD";
 
   const totalInflow = transactions
     .filter((t) => t.type === "income")
@@ -46,7 +50,7 @@ export default async function TransactionsPage() {
                 Total Inflow
               </span>
               <span className="font-catamaran font-bold text-xl text-emerald-400">
-                +{formatCurrency(totalInflow)}
+                +{formatCurrency(totalInflow, userCurrency)}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400">
@@ -63,7 +67,7 @@ export default async function TransactionsPage() {
                 Total Outflow
               </span>
               <span className="font-catamaran font-bold text-xl text-rose-400">
-                -{formatCurrency(totalOutflow)}
+                -{formatCurrency(totalOutflow, userCurrency)}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-rose-500/15 text-rose-400">
@@ -80,7 +84,7 @@ export default async function TransactionsPage() {
                 Inter-Account Transfers
               </span>
               <span className="font-catamaran font-bold text-xl text-blue-400">
-                {formatCurrency(totalTransfers)}
+                {formatCurrency(totalTransfers, userCurrency)}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-blue-500/15 text-blue-400">

@@ -146,7 +146,11 @@ export function RecurringDialog({
           {/* Account Selection */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-300">
-              {type === "transfer" ? "Source Account" : "Account"}
+              {type === "transfer"
+                ? "From (Source Account)"
+                : type === "income"
+                ? "Deposit To (Account)"
+                : "Withdraw From (Account)"}
             </label>
             <select
               name="account_id"
@@ -166,7 +170,7 @@ export function RecurringDialog({
           {type === "transfer" && (
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-300">
-                Destination Account
+                To (Destination Account)
               </label>
               <select
                 name="destination_account_id"
@@ -186,7 +190,9 @@ export function RecurringDialog({
           {/* Category (if expense or income) */}
           {type !== "transfer" && (
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300">Category</label>
+              <label className="text-xs font-semibold text-slate-300">
+                {type === "income" ? "Income Category" : "Expense Category"}
+              </label>
               <select
                 name="category_id"
                 className="w-full h-10 px-3 rounded-md bg-slate-950/60 border border-slate-800 text-slate-100 text-sm focus:outline-hidden focus:ring-1 focus:ring-blue-500"
