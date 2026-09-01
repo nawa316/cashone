@@ -18,6 +18,7 @@ import {
   BarChart3,
   Tags,
   Settings,
+  Target
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -29,6 +30,7 @@ const mobileNavItems = [
   { name: "Recurring & Bills", href: "/recurring", icon: Repeat },
   { name: "Analytics & Reports", href: "/analytics", icon: BarChart3 },
   { name: "Categories", href: "/categories", icon: Tags },
+  { name: "Saving Goals", href: "/goals", icon: Target },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
