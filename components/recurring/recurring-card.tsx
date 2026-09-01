@@ -21,10 +21,11 @@ import {
 } from "lucide-react";
 
 interface RecurringCardProps {
+  currency?: string;
   template: RecurringTemplate;
 }
 
-export function RecurringCard({ template }: RecurringCardProps) {
+export function RecurringCard({ template, currency = "USD" }: RecurringCardProps) {
   const [executing, setExecuting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [success, setSuccess] = useState(false);

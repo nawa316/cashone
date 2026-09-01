@@ -9,6 +9,7 @@ import { Tag, AlertTriangle, CheckCircle2, Trash2, Edit2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 interface BudgetCardProps {
+  currency?: string;
   budget: {
     id: string;
     limit_amount: number;
@@ -29,7 +30,7 @@ interface BudgetCardProps {
   onEdit?: (budget: any) => void;
 }
 
-export function BudgetCard({ budget, onEdit }: BudgetCardProps) {
+export function BudgetCard({ budget, onEdit, currency = "USD" }: BudgetCardProps) {
   const spent = budget.spent || 0;
   const limit = Number(budget.limit_amount) || 1;
   const percentage = budget.percentage || 0;
@@ -135,13 +136,13 @@ export function BudgetCard({ budget, onEdit }: BudgetCardProps) {
             <span className="text-slate-400">
               Spent:{" "}
               <strong className="font-catamaran font-bold text-slate-200 text-sm">
-                {formatCurrency(spent)}
+                {formatCurrency(spent, currency)}
               </strong>
             </span>
             <span className="text-slate-400">
               Limit:{" "}
               <strong className="font-catamaran font-bold text-slate-200 text-sm">
-                {formatCurrency(limit)}
+                {formatCurrency(limit, currency)}
               </strong>
             </span>
           </div>
@@ -161,8 +162,8 @@ export function BudgetCard({ budget, onEdit }: BudgetCardProps) {
           <div className="flex items-center justify-between text-[11px] pt-1 text-slate-400">
             <span>
               {isOver
-                ? `Exceeded by ${formatCurrency(spent - limit)}`
-                : `${formatCurrency(budget.remaining || 0)} remaining`}
+                ? `Exceeded by ${formatCurrency(spent - limit, currency)}`
+                : `${formatCurrency(budget.remaining || 0, currency)} remaining`}
             </span>
             <span className="font-catamaran font-semibold" style={{ color: statusColor }}>
               {percentage}%

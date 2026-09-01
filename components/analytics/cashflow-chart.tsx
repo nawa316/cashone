@@ -8,9 +8,10 @@ import { TrendingUp, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 
 interface CashflowChartProps {
   data: CashflowPoint[];
+  currency?: string;
 }
 
-export function CashflowChart({ data }: CashflowChartProps) {
+export function CashflowChart({ data, currency = 'USD' }: CashflowChartProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   // If no data points, provide empty state
@@ -93,15 +94,15 @@ export function CashflowChart({ data }: CashflowChartProps) {
                       </div>
                       <div className="flex items-center gap-2 text-emerald-400">
                         <ArrowDownLeft className="w-3 h-3" />
-                        <span>Income: {formatCurrency(point.income)}</span>
+                        <span>Income: {formatCurrency(point.income, currency)}</span>
                       </div>
                       <div className="flex items-center gap-2 text-rose-400">
                         <ArrowUpRight className="w-3 h-3" />
-                        <span>Expense: {formatCurrency(point.expense)}</span>
+                        <span>Expense: {formatCurrency(point.expense, currency)}</span>
                       </div>
                       <div className="border-t border-slate-800 pt-1 mt-1 text-slate-300 font-medium">
                         Net: {point.net >= 0 ? "+" : ""}
-                        {formatCurrency(point.net)}
+                        {formatCurrency(point.net, currency)}
                       </div>
                     </div>
                   )}
@@ -137,7 +138,7 @@ export function CashflowChart({ data }: CashflowChartProps) {
               </span>
               <span className="font-catamaran font-bold text-sm text-emerald-400">
                 {formatCurrency(
-                  data.reduce((sum, d) => sum + d.income, 0) / data.length
+                  data.reduce((sum, d) => sum + d.income, 0) / data.length, currency
                 )}
               </span>
             </div>
@@ -147,7 +148,7 @@ export function CashflowChart({ data }: CashflowChartProps) {
               </span>
               <span className="font-catamaran font-bold text-sm text-rose-400">
                 {formatCurrency(
-                  data.reduce((sum, d) => sum + d.expense, 0) / data.length
+                  data.reduce((sum, d) => sum + d.expense, 0) / data.length, currency
                 )}
               </span>
             </div>
@@ -157,7 +158,7 @@ export function CashflowChart({ data }: CashflowChartProps) {
               </span>
               <span className="font-catamaran font-bold text-sm text-blue-400">
                 {formatCurrency(
-                  data.reduce((sum, d) => sum + d.net, 0)
+                  data.reduce((sum, d) => sum + d.net, 0), currency
                 )}
               </span>
             </div>

@@ -1,6 +1,7 @@
 import React from "react";
 import { getAnalyticsData } from "@/lib/actions/analytics.actions";
 import { getTransactions } from "@/lib/actions/transactions.actions";
+import { getUserProfile } from "@/lib/actions/profile.actions";
 import { AnalyticsHeader } from "@/components/analytics/analytics-header";
 import { CashflowChart } from "@/components/analytics/cashflow-chart";
 import { CategoryBreakdownCard } from "@/components/analytics/category-breakdown-card";
@@ -29,10 +30,12 @@ export default async function AnalyticsPage(props: AnalyticsPageProps) {
     | "12m"
     | "all";
 
-  const [analytics, transactions] = await Promise.all([
+  const [analytics, transactions, profile] = await Promise.all([
     getAnalyticsData(timeframe),
     getTransactions(),
+    getUserProfile(),
   ]);
+  const currency = profile?.default_currency || "USD";
 
   return (
     <div className="space-y-8">
@@ -52,7 +55,7 @@ export default async function AnalyticsPage(props: AnalyticsPageProps) {
                 Period Inflow
               </span>
               <span className="font-catamaran font-bold text-xl text-emerald-400">
-                +{formatCurrency(analytics.totalIncome)}
+                +{formatCurrency(analytics.totalIncome, currency)}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400">
@@ -69,7 +72,7 @@ export default async function AnalyticsPage(props: AnalyticsPageProps) {
                 Period Outflow
               </span>
               <span className="font-catamaran font-bold text-xl text-rose-400">
-                -{formatCurrency(analytics.totalExpense)}
+                -{formatCurrency(analytics.totalExpense, currency)}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-rose-500/15 text-rose-400">
@@ -91,7 +94,7 @@ export default async function AnalyticsPage(props: AnalyticsPageProps) {
                 }`}
               >
                 {analytics.netSavings >= 0 ? "+" : ""}
-                {formatCurrency(analytics.netSavings)}
+                {formatCurrency(analytics.netSavings, currency)}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-blue-500/15 text-blue-400">
@@ -119,15 +122,16 @@ export default async function AnalyticsPage(props: AnalyticsPageProps) {
       </div>
 
       {/* Main Cashflow Trajectory Chart */}
-      <CashflowChart data={analytics.cashflowTrend} />
+      <CashflowChart data={analytics.cashflowTrend} currency={currency} />
 
       {/* 2-Column Analytics: Category Breakdown & Asset Allocation */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <CategoryBreakdownCard
           categories={analytics.categoryBreakdown}
           totalExpense={analytics.totalExpense}
+          currency={currency}
         />
-        <AssetAllocationCard accounts={analytics.assetAllocation} />
+        <AssetAllocationCard accounts={analytics.assetAllocation} currency={currency} />
       </div>
 
       {/* Interactive FX Converter Tool */}

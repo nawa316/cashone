@@ -7,6 +7,7 @@ import type { CategoryBreakdownItem } from "@/lib/actions/analytics.actions";
 import { PieChart, Tag } from "lucide-react";
 
 interface CategoryBreakdownCardProps {
+  currency?: string;
   categories: CategoryBreakdownItem[];
   totalExpense: number;
 }
@@ -14,6 +15,7 @@ interface CategoryBreakdownCardProps {
 export function CategoryBreakdownCard({
   categories,
   totalExpense,
+  currency = 'USD',
 }: CategoryBreakdownCardProps) {
   if (!categories || categories.length === 0) {
     return (
@@ -44,7 +46,7 @@ export function CategoryBreakdownCard({
           </p>
         </div>
         <span className="text-xs font-semibold text-rose-400 font-catamaran">
-          Total: {formatCurrency(totalExpense)}
+          Total: {formatCurrency(totalExpense, currency)}
         </span>
       </CardHeader>
 
@@ -84,7 +86,7 @@ export function CategoryBreakdownCard({
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-slate-100 font-catamaran">
-                    {formatCurrency(cat.totalAmount)}
+                    {formatCurrency(cat.totalAmount, currency)}
                   </span>
                   <span className="font-semibold text-[11px] text-slate-400 w-8 text-right font-catamaran">
                     {cat.percentage}%

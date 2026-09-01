@@ -7,6 +7,7 @@ import type { AssetAllocationItem } from "@/lib/actions/analytics.actions";
 import { Wallet, Landmark, PiggyBank, Smartphone, Banknote } from "lucide-react";
 
 interface AssetAllocationCardProps {
+  currency?: string;
   accounts: AssetAllocationItem[];
 }
 
@@ -19,7 +20,7 @@ const accountTypeIcons: Record<string, any> = {
   credit_card: Wallet,
 };
 
-export function AssetAllocationCard({ accounts }: AssetAllocationCardProps) {
+export function AssetAllocationCard({ accounts, currency = 'USD' }: AssetAllocationCardProps) {
   const totalHoldings = accounts.reduce(
     (sum, acc) => sum + Math.max(acc.balance, 0),
     0
@@ -54,7 +55,7 @@ export function AssetAllocationCard({ accounts }: AssetAllocationCardProps) {
           </p>
         </div>
         <span className="text-xs font-semibold text-blue-400 font-catamaran">
-          Net: {formatCurrency(totalHoldings)}
+          Net: {formatCurrency(totalHoldings, currency)}
         </span>
       </CardHeader>
 
@@ -109,7 +110,7 @@ export function AssetAllocationCard({ accounts }: AssetAllocationCardProps) {
                         acc.balance >= 0 ? "text-slate-100" : "text-rose-400"
                       }`}
                     >
-                      {formatCurrency(acc.balance)}
+                      {formatCurrency(acc.balance, currency)}
                     </span>
                     <span className="font-semibold text-[11px] text-slate-400 w-8 text-right font-catamaran">
                       {acc.percentage}%

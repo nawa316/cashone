@@ -2,6 +2,7 @@ import React from "react";
 import { getRecurringTemplates } from "@/lib/actions/recurring.actions";
 import { getAccounts } from "@/lib/actions/accounts.actions";
 import { getCategories } from "@/lib/actions/categories.actions";
+import { getUserProfile } from "@/lib/actions/profile.actions";
 import { RecurringHeader } from "@/components/recurring/recurring-header";
 import { RecurringCard } from "@/components/recurring/recurring-card";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,11 +10,13 @@ import { formatCurrency } from "@/lib/utils";
 import { Repeat, Calendar, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 
 export default async function RecurringPage() {
-  const [templates, accounts, categories] = await Promise.all([
+  const [templates, accounts, categories, profile] = await Promise.all([
     getRecurringTemplates(),
     getAccounts(),
     getCategories(),
+    getUserProfile(),
   ]);
+  const currency = profile?.default_currency || "USD";
 
   const totalMonthlyScheduledOutflow = templates
     .filter((t) => t.type === "expense")
@@ -38,7 +41,7 @@ export default async function RecurringPage() {
                 Scheduled Inflows
               </span>
               <span className="font-catamaran font-bold text-xl text-emerald-400">
-                +{formatCurrency(totalMonthlyScheduledInflow)}
+                +{formatCurrency(totalMonthlyScheduledInflow, currency)}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400">
@@ -55,7 +58,7 @@ export default async function RecurringPage() {
                 Scheduled Bills & Outflows
               </span>
               <span className="font-catamaran font-bold text-xl text-rose-400">
-                -{formatCurrency(totalMonthlyScheduledOutflow)}
+                -{formatCurrency(totalMonthlyScheduledOutflow, currency)}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-rose-500/15 text-rose-400">
@@ -107,7 +110,7 @@ export default async function RecurringPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {templates.map((template) => (
-              <RecurringCard key={template.id} template={template} />
+              <RecurringCard currency={currency} key={template.id} template={template} />
             ))}
           </div>
         )}
