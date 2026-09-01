@@ -15,8 +15,21 @@ const inter = Inter({
   display: "swap",
 });
 
+export const viewport = {
+  themeColor: "#0E1526",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export const metadata: Metadata = {
   title: "Cashone — Personal Finance & Double-Entry Ledger",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Cashone",
+  },
+
   description:
     "Institutional-grade personal finance ledger, multi-account liquid tracking, atomic transfers, category analytics, and receipt storage.",
   keywords: [
