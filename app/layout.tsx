@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Catamaran, Inter } from "next/font/google";
+import { NavigationProgress } from "@/components/layout/navigation-progress";
 import "./globals.css";
 
 const catamaran = Catamaran({
@@ -71,6 +73,9 @@ export default function RootLayout({
       className={`${catamaran.variable} ${inter.variable} dark h-full antialiased`}
     >
       <body className="min-h-screen bg-[#0B0F19] text-slate-100 antialiased font-sans flex flex-col">
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
         {children}
       </body>
     </html>
